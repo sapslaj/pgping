@@ -43,13 +43,22 @@ def set_version_string(version: Union[semver.VersionInfo, str]):
     repo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     codefile_path = os.path.join(repo_path, "main.go")
 
-    with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmp_file:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
         with open(codefile_path) as src_file:
             for line in src_file:
                 tmp_file.write(pattern.sub(f'VERSION = "{version}"', line))
 
     shutil.copystat(codefile_path, tmp_file.name)
     shutil.move(tmp_file.name, codefile_path)
+
+
+def commit_version_string(commit_message: str) -> bool:
+    status = cmd(["git", "status", "main.go"]).decode()
+    if "nothing to commit" in status:
+        return False
+    cmd(["git", "add", "main.go"])
+    cmd(["git", "commit", "-m", commit_message])
+    return True
 
 
 def create_git_tag(version: Union[semver.VersionInfo, str], message: Optional[str] = None):
@@ -108,6 +117,8 @@ def main():
     parser.add_argument("--patch", action="store_true", help="Patch version bump")
     parser.add_argument("--prerelease", action="store_true", help="Prerelease version bump")
     parser.add_argument("--build", action="store_true", help="Build version bump")
+    parser.add_argument("--commit", action="store_true", help="Commit changes to version string")
+    parser.add_argument("--commit-message", default=None, help="git commit message (defaults to version)")
     parser.add_argument("--tag", action="store_true", help="Create git tag")
     parser.add_argument("--tag-message", default=None, help="git tag message (defaults to version)")
     parser.add_argument("--push", action="store_true", help="Push git tag")
@@ -130,6 +141,11 @@ def main():
         )
     print(f"new version is {new_version}")
     set_version_string(version=new_version)
+    if args.commit:
+        if commit_version_string(args.commit_message or str(new_version)):
+            print("commited version string changes")
+        else:
+            print("no version string changes to commit")
     if args.tag:
         tag = create_git_tag(version=new_version)
         print(f"created git tag {tag}")
