@@ -19,7 +19,7 @@ def get_versions():
         if not tag:
             return None
         try:
-            return semver.VersionInfo.parse(tag)
+            return semver.VersionInfo.parse(tag.removeprefix("v"))
         except ValueError:
             return None
 
@@ -55,6 +55,8 @@ def set_version_string(version: Union[semver.VersionInfo, str]):
 def create_git_tag(version: Union[semver.VersionInfo, str], message: Optional[str] = None):
     if isinstance(version, semver.VersionInfo):
         version = str(version)
+    if not version.startswith("v"):
+        version = f"v{version}"
     if not message:
         message = version
     cmd(["git", "tag", "-a", version, "-m", message])
