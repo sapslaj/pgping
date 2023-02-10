@@ -9,7 +9,7 @@ import os
 from typing import Iterable, Optional, Union, cast
 
 
-def cmd(args: Iterable[str]) -> any:
+def cmd(args: Iterable[str]) -> bytes:
     print("$ ", *args)
     return subprocess.check_output(args)
 
@@ -61,7 +61,9 @@ def create_git_tag(version: Union[semver.VersionInfo, str], message: Optional[st
     return version
 
 
-def push_git_tag(tag: str, remote: str = "origin"):
+def push_git_tag(tag: str, remote: Optional[str] = None):
+    if not remote:
+        remote = "origin"
     cmd(["git", "push", remote, tag])
     return remote
 
