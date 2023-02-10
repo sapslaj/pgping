@@ -11,6 +11,8 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+const VERSION = "0.1.0"
+
 var (
 	count   = kingpin.Flag("count", "stop after N pings").Default("-1").Short('c').Int()
 	wait    = kingpin.Flag("wait", "wait time between sending each ping").Default("1s").Short('i').Duration()
@@ -22,7 +24,7 @@ var (
 	pgDatabase = kingpin.Flag("pg-database", "").Envar("PGDATABASE").String()
 	pgUser     = kingpin.Flag("pg-user", "").Envar("PGUSER").String()
 	pgPassword = kingpin.Flag("pg-password", "").Envar("PGPASSWORD").String()
-	pgAppName  = kingpin.Flag("pg-app-name", "").Default("pgping/0.1.0").Envar("PGAPPNAME").String()
+	pgAppName  = kingpin.Flag("pg-app-name", "").Default("pgping/" + VERSION).Envar("PGAPPNAME").String()
 )
 
 func kv(key string, value any) string {
