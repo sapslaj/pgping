@@ -29,7 +29,7 @@ var (
 
 func kv(key string, value any) string {
 	switch v := value.(type) {
-	case string:
+	case string, error:
 		value = fmt.Sprintf("%q", v)
 	}
 	return fmt.Sprintf("%s=%v", key, value)
@@ -43,7 +43,7 @@ func result(i int, start time.Time, kvs ...string) time.Duration {
 	kvs = append(kvs, kv("i", i))
 	kvs = append(kvs, kv("duration", duration))
 	var format strings.Builder
-	format.WriteString(time.Now().Format("2006-01-02T15:04:05.999Z") + " ")
+	format.WriteString(fmt.Sprintf("%-25s", time.Now().Format("2006-01-02T15:04:05.999Z")))
 	for i, label := range kvs {
 		if i > 0 {
 			format.WriteString(" ")
