@@ -58,20 +58,20 @@ func ping(ctx context.Context, connConfig *pgx.ConnConfig, i int) time.Duration 
 	start := time.Now()
 	conn, err := pgx.ConnectConfig(ctx, connConfig)
 	if err != nil {
-		return result(i, start, kv("msg", "error connecting"), kv("err", err))
+		return result(i, start, kv("status", "ERR"), kv("msg", "error connecting"), kv("err", err))
 	}
 	rows, err := conn.Query(ctx, *query)
 	if err != nil {
-		return result(i, start, kv("msg", "error querying"), kv("err", err))
+		return result(i, start, kv("status", "ERR"), kv("msg", "error querying"), kv("err", err))
 	}
 	err = conn.Close(ctx)
 	if err != nil {
-		return result(i, start, kv("msg", "error closing"), kv("err", err))
+		return result(i, start, kv("status", "ERR"), kv("msg", "error closing"), kv("err", err))
 	}
 	if rows.Next() {
 		return result(i, start, kv("status", "OK"), kv("host", connConfig.Host))
 	}
-	return result(i, start, kv("status", "FAIL"), kv("host", connConfig.Host))
+	return result(i, start, kv("status", "FAIL"), kv("host", connConfig.Host), kv("msg", "0 rows returned"))
 }
 
 func main() {
