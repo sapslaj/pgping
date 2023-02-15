@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"net"
 	"strings"
 	"time"
 
@@ -54,7 +53,9 @@ func result(i int, start time.Time, kvs ...string) time.Duration {
 	return duration
 }
 
-func ping(ctx context.Context, connConfig *pgx.ConnConfig, i int) time.Duration {
+func ping(parent context.Context, connConfig *pgx.ConnConfig, i int) time.Duration {
+	ctx, cancel := context.WithTimeout(parent, *timeout)
+	defer cancel()
 	start := time.Now()
 	conn, err := pgx.ConnectConfig(ctx, connConfig)
 	if err != nil {
@@ -105,9 +106,6 @@ func main() {
 	connConfig, err := pgx.ParseConfig(connString.String())
 	if err != nil {
 		panic(err)
-	}
-	connConfig.Config.DialFunc = func(ctx context.Context, network, addr string) (net.Conn, error) {
-		return net.DialTimeout(network, addr, *timeout)
 	}
 
 	for i := 1; *count == -1 || i <= *count; i++ {
