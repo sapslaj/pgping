@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-const VERSION = "0.1.0"
+const VERSION = "0.2.0"
 
 var (
 	count   = kingpin.Flag("count", "stop after N pings").Default("-1").Short('c').Int()
