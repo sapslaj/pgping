@@ -10,8 +10,6 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-const VERSION = "0.2.0"
-
 var (
 	count   = kingpin.Flag("count", "stop after N pings").Default("-1").Short('c').Int()
 	wait    = kingpin.Flag("wait", "wait time between sending each ping").Default("1s").Short('i').Duration()

@@ -8,6 +8,8 @@ import shutil
 import os
 from typing import Iterable, Optional, Union, cast
 
+VERSION_FILE = "version.go"
+
 
 def cmd(args: Iterable[str]) -> bytes:
     print("$ ", *args)
@@ -41,7 +43,7 @@ def set_version_string(version: Union[semver.VersionInfo, str]):
 
     pattern = re.compile(r'VERSION = ".*"')
     repo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    codefile_path = os.path.join(repo_path, "main.go")
+    codefile_path = os.path.join(repo_path, VERSION_FILE)
 
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
         with open(codefile_path) as src_file:
@@ -53,10 +55,10 @@ def set_version_string(version: Union[semver.VersionInfo, str]):
 
 
 def commit_version_string(commit_message: str) -> bool:
-    status = cmd(["git", "status", "main.go"]).decode()
+    status = cmd(["git", "status", VERSION_FILE]).decode()
     if "nothing to commit" in status:
         return False
-    cmd(["git", "add", "main.go"])
+    cmd(["git", "add", VERSION_FILE])
     cmd(["git", "commit", "-m", commit_message])
     return True
 
