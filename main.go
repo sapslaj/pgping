@@ -87,7 +87,11 @@ func main() {
 			panic(err)
 		}
 	}
-	err := t.FromFlags()
+	err := t.FromNetrc("")
+	if err != nil {
+		panic(err)
+	}
+	err = t.FromFlags()
 	if err != nil {
 		panic(err)
 	}

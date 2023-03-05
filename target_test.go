@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/aws/smithy-go/ptr"
@@ -72,6 +73,74 @@ func TestTargetFromConnString(t *testing.T) {
 	for desc, tc := range tests {
 		tg := Target{}
 		err := tg.FromConnString(tc.input)
+		if err != nil {
+			t.Fatalf("%s: error %v", desc, err)
+		}
+		diff := cmp.Diff(tc.expected, tg)
+		if diff != "" {
+			t.Errorf("%s: mismatch:\n%s", desc, diff)
+		}
+	}
+}
+
+func TestTargetFromNetrc(t *testing.T) {
+	tests := map[string]struct {
+		initial  Target
+		netrc    string
+		expected Target
+	}{
+		"empty": {
+			initial:  Target{},
+			netrc:    "",
+			expected: Target{},
+		},
+		"non-matching line": {
+			initial: Target{
+				Host: "db.example.com",
+			},
+			netrc: "machine example.com login daniel password qwerty",
+			expected: Target{
+				Host: "db.example.com",
+			},
+		},
+		"matching line": {
+			initial: Target{
+				Host: "db.example.com",
+			},
+			netrc: "machine db.example.com login daniel password qwerty",
+			expected: Target{
+				Host:     "db.example.com",
+				User:     "daniel",
+				Password: "qwerty",
+			},
+		},
+		"non-overriding": {
+			initial: Target{
+				Host:     "db.example.com",
+				User:     "user",
+				Password: "hunter2",
+			},
+			netrc: "machine db.example.com login daniel password qwerty",
+			expected: Target{
+				Host:     "db.example.com",
+				User:     "user",
+				Password: "hunter2",
+			},
+		},
+	}
+	for desc, tc := range tests {
+		tg := tc.initial
+		file, err := os.CreateTemp("", "*.netrc")
+		if err != nil {
+			t.Fatalf("%s: error creating temp file %v", desc, err)
+		}
+		defer os.Remove(file.Name())
+		file.Write([]byte(tc.netrc))
+		err = file.Close()
+		if err != nil {
+			t.Fatalf("%s: error closing temp file %v", desc, err)
+		}
+		err = tg.FromNetrc(file.Name())
 		if err != nil {
 			t.Fatalf("%s: error %v", desc, err)
 		}

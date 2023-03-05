@@ -2,10 +2,15 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/user"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jdxcode/netrc"
 )
 
 type Target struct {
@@ -30,6 +35,50 @@ func (t *Target) FromConnString(s string) error {
 	t.Database = parsed.Database
 	t.User = parsed.User
 	t.Password = parsed.Password
+	return nil
+}
+
+func (t *Target) FromNetrc(path string) error {
+	if path == "" {
+		if env := os.Getenv("NETRC"); env != "" {
+			path = env
+		} else {
+			base := ".netrc"
+			if runtime.GOOS == "windows" {
+				base = "_netrc"
+			}
+			usr, err := user.Current()
+			if err != nil {
+				return err
+			}
+			path = filepath.Join(usr.HomeDir, base)
+		}
+	}
+	stat, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if stat.IsDir() {
+		return nil
+	}
+	n, err := netrc.Parse(path)
+	if err != nil {
+		return err
+	}
+	machine := n.Machine(t.Host)
+	if machine == nil {
+		return nil
+	}
+	if t.User == "" {
+		if username := machine.Get("login"); username != "" {
+			t.User = username
+		}
+	}
+	if t.Password == "" {
+		if password := machine.Get("password"); password != "" {
+			t.Password = password
+		}
+	}
 	return nil
 }
 
