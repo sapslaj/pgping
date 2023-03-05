@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -53,26 +54,26 @@ func result(i int, start time.Time, kvs ...string) time.Duration {
 	return duration
 }
 
-func ping(parent context.Context, connConfig *pgx.ConnConfig, i int) time.Duration {
+func ping(parent context.Context, connConfig *pgx.ConnConfig, i int) (bool, time.Duration) {
 	ctx, cancel := context.WithTimeout(parent, *timeout)
 	defer cancel()
 	start := time.Now()
 	conn, err := pgx.ConnectConfig(ctx, connConfig)
 	if err != nil {
-		return result(i, start, kv("status", "ERR"), kv("msg", "error connecting"), kv("err", err))
+		return false, result(i, start, kv("status", "ERR"), kv("msg", "error connecting"), kv("err", err))
 	}
 	rows, err := conn.Query(ctx, *query)
 	if err != nil {
-		return result(i, start, kv("status", "ERR"), kv("msg", "error querying"), kv("err", err))
+		return false, result(i, start, kv("status", "ERR"), kv("msg", "error querying"), kv("err", err))
 	}
 	err = conn.Close(ctx)
 	if err != nil {
-		return result(i, start, kv("status", "ERR"), kv("msg", "error closing"), kv("err", err))
+		return false, result(i, start, kv("status", "ERR"), kv("msg", "error closing"), kv("err", err))
 	}
 	if rows.Next() {
-		return result(i, start, kv("status", "OK"), kv("host", connConfig.Host))
+		return true, result(i, start, kv("status", "OK"), kv("host", connConfig.Host))
 	}
-	return result(i, start, kv("status", "FAIL"), kv("host", connConfig.Host), kv("msg", "0 rows returned"))
+	return false, result(i, start, kv("status", "FAIL"), kv("host", connConfig.Host), kv("msg", "0 rows returned"))
 }
 
 func main() {
@@ -102,7 +103,14 @@ func main() {
 	}
 
 	for i := 1; *count == -1 || i <= *count; i++ {
-		duration := ping(ctx, connConfig, i)
+		pass, duration := ping(ctx, connConfig, i)
+		if i == *count {
+			if pass {
+				os.Exit(0)
+			} else {
+				os.Exit(1)
+			}
+		}
 		timeUntilNext := *wait - duration
 		if timeUntilNext > 0 {
 			time.Sleep(timeUntilNext)
