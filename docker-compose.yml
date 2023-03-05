@@ -1,0 +1,11 @@
+version: '3'
+services:
+  postgres:
+    image: postgres
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: test123
+      POSTGRES_USER: pgping
+      POSTGRES_DB: pgping
