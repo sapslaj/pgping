@@ -3,7 +3,7 @@
 Quick-n-dirty "ping" utility for testing connectivity to PostgreSQL databases
 
 ```
-usage: pgping [<flags>]
+usage: pgping [<flags>] [<target>]
 
 Flags:
   -h, --help                     Show context-sensitive help (also try --help-long and --help-man).
@@ -16,5 +16,9 @@ Flags:
       --pg-database=PG-DATABASE
       --pg-user=PG-USER
       --pg-password=PG-PASSWORD
-      --pg-app-name="pgping/0.1.0"
+      --pg-app-name="pgping/0.3.0"
+
+
+Args:
+  [<target>]
 ```
