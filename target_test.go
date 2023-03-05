@@ -2,29 +2,30 @@ package main
 
 import (
 	"fmt"
-	"os/user"
 	"testing"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/go-cmp/cmp"
+	"github.com/jackc/pgx/v5"
 )
 
 func TestTargetFromConnString(t *testing.T) {
-	u, err := user.Current()
+	// reference empty config from pgx
+	ref, err := pgx.ParseConfig("postgres://")
 	if err != nil {
 		panic(err)
 	}
-	username := u.Username
 	tests := map[string]struct {
 		input    string
+		inital   Target
 		expected Target
 	}{
 		"empty string": {
 			input: "",
 			expected: Target{
-				Host: "/tmp",
-				Port: 5432,
-				User: username,
+				Host: ref.Host,
+				Port: int(ref.Port),
+				User: ref.User,
 			},
 		},
 		"hostname": {
@@ -32,7 +33,7 @@ func TestTargetFromConnString(t *testing.T) {
 			expected: Target{
 				Host: "db.example.com",
 				Port: 5432,
-				User: username,
+				User: ref.User,
 			},
 		},
 		"hostname:port": {
@@ -40,7 +41,7 @@ func TestTargetFromConnString(t *testing.T) {
 			expected: Target{
 				Host: "db.example.com",
 				Port: 4567,
-				User: username,
+				User: ref.User,
 			},
 		},
 		"username@hostname": {
@@ -64,7 +65,7 @@ func TestTargetFromConnString(t *testing.T) {
 			expected: Target{
 				Host: "db.example.com",
 				Port: 5432,
-				User: username,
+				User: ref.User,
 			},
 		},
 	}
