@@ -22,6 +22,8 @@ var (
 	pgUser     = kingpin.Flag("pg-user", "").Envar("PGUSER").String()
 	pgPassword = kingpin.Flag("pg-password", "").Envar("PGPASSWORD").String()
 	pgAppName  = kingpin.Flag("pg-app-name", "").Default("pgping/" + VERSION).Envar("PGAPPNAME").String()
+
+	target = kingpin.Arg("target", "").String()
 )
 
 func kv(key string, value any) string {
@@ -77,31 +79,20 @@ func main() {
 	kingpin.CommandLine.HelpFlag.Short('h')
 	kingpin.Parse()
 	ctx := context.Background()
-	var connString strings.Builder
-	connString.WriteString("postgres://")
-	if pgUser != nil {
-		connString.WriteString(*pgUser)
-		if pgPassword != nil {
-			connString.WriteString(":")
-			connString.WriteString(*pgPassword)
-		}
-		connString.WriteString("@")
-	}
-	if pgHost != nil {
-		connString.WriteString(*pgHost)
-	}
-	if pgPort != nil {
-		connString.WriteString(":")
-		connString.WriteString(*pgPort)
-	}
-	if pgDatabase != nil {
-		connString.WriteString("/")
-		connString.WriteString(*pgDatabase)
-	}
-	connString.WriteString("?application_name=")
-	connString.WriteString(*pgAppName)
 
-	connConfig, err := pgx.ParseConfig(connString.String())
+	t := &Target{}
+	if target != nil && *target != "" {
+		err := t.FromConnString(*target)
+		if err != nil {
+			panic(err)
+		}
+	}
+	err := t.FromFlags()
+	if err != nil {
+		panic(err)
+	}
+
+	connConfig, err := t.ToConnConfig()
 	if err != nil {
 		panic(err)
 	}

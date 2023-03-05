@@ -4,6 +4,8 @@ go 1.19
 
 require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
+	github.com/aws/smithy-go v1.13.5
+	github.com/google/go-cmp v0.5.9
 	github.com/jackc/pgx/v5 v5.2.0
 )
 
