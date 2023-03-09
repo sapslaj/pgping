@@ -37,7 +37,7 @@ func kv(key string, value any) string {
 
 func result(i int, start time.Time, kvs ...string) time.Duration {
 	if kvs == nil {
-		kvs = make([]string, 2)
+		kvs = make([]string, 0)
 	}
 	duration := time.Since(start)
 	kvs = append(kvs, kv("i", i))

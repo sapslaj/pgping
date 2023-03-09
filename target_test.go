@@ -18,7 +18,7 @@ func TestTargetFromConnString(t *testing.T) {
 	}
 	tests := map[string]struct {
 		input    string
-		inital   Target
+		initial  Target
 		expected Target
 	}{
 		"empty string": {
