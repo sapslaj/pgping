@@ -1,0 +1,47 @@
+linters:
+  presets:
+    - bugs
+    - comment
+    - complexity
+    - error
+    - format
+    - import
+    - metalinter
+    - module
+    - performance
+    - sql
+    - style
+    - test
+    - unused
+  disable:
+    - exhaustruct # TODO
+    - nlreturn # TODO
+    - paralleltest # TODO
+    - rowserrcheck # disabled because of generics. https://github.com/golangci/golangci-lint/issues/2649
+    - varnamelen # TODO
+    - wastedassign # disabled because of generics. https://github.com/golangci/golangci-lint/issues/2649
+    - wrapcheck # TODO
+    - wsl # TODO
+
+linters-settings:
+  cyclop:
+    max-complexity: 15
+  funlen:
+    lines: 100
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - dupl
+        - errcheck
+        - funlen
+    - path: main\.go
+      linters:
+        # fmt.Print is expected behavior
+        - forbidigo
+        # flags are known globals
+        - gochecknoglobals
+    - path: target\.go
+      linters:
+        - nestif # TODO
