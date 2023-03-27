@@ -17,12 +17,12 @@ var (
 	timeout = kingpin.Flag("timeout", "timeout for connections to the DB").Default("5s").Short('t').Duration()
 	query   = kingpin.Flag("query", "Test query to execute on database").Default("SELECT 1").String()
 
-	pgHost     = kingpin.Flag("pg-host", "").Envar("PGHOST").String()
-	pgPort     = kingpin.Flag("pg-port", "").Envar("PGPORT").String()
-	pgDatabase = kingpin.Flag("pg-database", "").Envar("PGDATABASE").String()
-	pgUser     = kingpin.Flag("pg-user", "").Envar("PGUSER").String()
-	pgPassword = kingpin.Flag("pg-password", "").Envar("PGPASSWORD").String()
-	pgAppName  = kingpin.Flag("pg-app-name", "").Default("pgping/" + VERSION).Envar("PGAPPNAME").String()
+	pgHost     = kingpin.Flag("pg-host", "").String()
+	pgPort     = kingpin.Flag("pg-port", "").String()
+	pgDatabase = kingpin.Flag("pg-database", "").String()
+	pgUser     = kingpin.Flag("pg-user", "").String()
+	pgPassword = kingpin.Flag("pg-password", "").String()
+	pgAppName  = kingpin.Flag("pg-app-name", "").Default("pgping/" + VERSION).String()
 
 	target = kingpin.Arg("target", "").String()
 )
@@ -82,19 +82,23 @@ func main() {
 	ctx := context.Background()
 
 	t := &Target{}
-	if target != nil && *target != "" {
-		err := t.FromConnString(*target)
-		if err != nil {
-			panic(err)
-		}
-	}
 	err := t.FromNetrc("")
+	if err != nil {
+		panic(err)
+	}
+	err = t.FromEnv(os.Getenv)
 	if err != nil {
 		panic(err)
 	}
 	err = t.FromFlags()
 	if err != nil {
 		panic(err)
+	}
+	if target != nil && *target != "" {
+		err = t.FromConnString(*target)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	connConfig, err := t.ToConnConfig()

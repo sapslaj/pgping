@@ -30,11 +30,47 @@ func (t *Target) FromConnString(s string) error {
 	if err != nil {
 		return err
 	}
-	t.Host = parsed.Host
-	t.Port = int(parsed.Port)
-	t.Database = parsed.Database
-	t.User = parsed.User
-	t.Password = parsed.Password
+	if t.Host == "" {
+		t.Host = parsed.Host
+	}
+	if t.Port == 0 {
+		t.Port = int(parsed.Port)
+	}
+	if t.Database == "" {
+		t.Database = parsed.Database
+	}
+	if t.User == "" {
+		t.User = parsed.User
+	}
+	if t.Password == "" {
+		t.Password = parsed.Password
+	}
+	return nil
+}
+
+func (t *Target) FromEnv(getenv func(string) string) error {
+	if host := getenv("PGHOST"); host != "" {
+		t.Host = host
+	}
+	if port := getenv("PGPORT"); port != "" {
+		portInt, err := strconv.Atoi(port)
+		if err != nil {
+			return err
+		}
+		t.Port = portInt
+	}
+	if database := getenv("PGDATABASE"); database != "" {
+		t.Database = database
+	}
+	if user := getenv("PGUSER"); user != "" {
+		t.User = user
+	}
+	if password := getenv("PGPASSWORD"); password != "" {
+		t.Password = password
+	}
+	if appName := getenv("PGAPPNAME"); appName != "" {
+		t.AppName = appName
+	}
 	return nil
 }
 

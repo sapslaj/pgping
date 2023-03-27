@@ -10,6 +10,90 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+func TestTargetFromEnv(t *testing.T) {
+	tests := map[string]struct {
+		env      map[string]string
+		initial  Target
+		expected Target
+	}{
+		"empty": {
+			env:      map[string]string{},
+			expected: Target{},
+		},
+		"hostname": {
+			env: map[string]string{
+				"PGHOST": "db.example.com",
+			},
+			expected: Target{
+				Host: "db.example.com",
+			},
+		},
+		"hostname and port": {
+			env: map[string]string{
+				"PGHOST": "db.example.com",
+				"PGPORT": "4567",
+			},
+			expected: Target{
+				Host: "db.example.com",
+				Port: 4567,
+			},
+		},
+		"username and hostname": {
+			env: map[string]string{
+				"PGUSER": "user",
+				"PGHOST": "db.example.com",
+			},
+			expected: Target{
+				User: "user",
+				Host: "db.example.com",
+			},
+		},
+		"username and password": {
+			env: map[string]string{
+				"PGUSER":     "user",
+				"PGPASSWORD": "hunter2",
+			},
+			expected: Target{
+				User:     "user",
+				Password: "hunter2",
+			},
+		},
+		"database": {
+			env: map[string]string{
+				"PGDATABASE": "example",
+			},
+			expected: Target{
+				Database: "example",
+			},
+		},
+		"app name": {
+			env: map[string]string{
+				"PGAPPNAME": "myapp",
+			},
+			expected: Target{
+				AppName: "myapp",
+			},
+		},
+	}
+	for desc, tc := range tests {
+		tg := tc.initial
+		getenv := func(key string) string {
+			if v, ok := tc.env[key]; ok {
+				return v
+			}
+			return ""
+		}
+		err := tg.FromEnv(getenv)
+		if err != nil {
+			t.Fatalf("%s: error %v", desc, err)
+		}
+		diff := cmp.Diff(tc.expected, tg)
+		if diff != "" {
+			t.Errorf("%s: mismatch:\n%s", desc, diff)
+		}
+	}
+}
+
 func TestTargetFromConnString(t *testing.T) {
 	// reference empty config from pgx
 	ref, err := pgx.ParseConfig("postgres://")
@@ -71,7 +155,7 @@ func TestTargetFromConnString(t *testing.T) {
 		},
 	}
 	for desc, tc := range tests {
-		tg := Target{}
+		tg := tc.initial
 		err := tg.FromConnString(tc.input)
 		if err != nil {
 			t.Fatalf("%s: error %v", desc, err)
@@ -154,6 +238,7 @@ func TestTargetFromNetrc(t *testing.T) {
 func TestTargetFromFlags(t *testing.T) {
 	tests := map[string]struct {
 		set      func()
+		initial  Target
 		expected Target
 	}{
 		"none": {
@@ -188,6 +273,16 @@ func TestTargetFromFlags(t *testing.T) {
 				Host: "db.example.com",
 			},
 		},
+		"username and password": {
+			set: func() {
+				pgUser = ptr.String("user")
+				pgPassword = ptr.String("hunter2")
+			},
+			expected: Target{
+				User:     "user",
+				Password: "hunter2",
+			},
+		},
 		"database": {
 			set: func() {
 				pgDatabase = ptr.String("example")
@@ -212,7 +307,7 @@ func TestTargetFromFlags(t *testing.T) {
 		pgUser = nil
 		pgPassword = nil
 		pgAppName = nil
-		tg := Target{}
+		tg := tc.initial
 		tc.set()
 		err := tg.FromFlags()
 		if err != nil {
