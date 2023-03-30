@@ -460,6 +460,18 @@ func TestTargetToConnConfig(t *testing.T) {
 				AppName: "CustomApp",
 			},
 		},
+		"unparsable password": {
+			input: Target{
+				User:     "user",
+				Password: "rdspostgres.123456789012.us-west-2.rds.amazonaws.com:5432/?Action=connect&DBUser=user&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAXXXXXXXXXXXXXXXX%2F20230330%2Fus-west-2%2Frds-db%2Faws4_request&X-Amz-Date=20230330T154114Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Security-Token=8QvrlkjXuPwM2Dif69QtSqtMftfDUfxSZ60OADWHKmjF3Nmu9Y0LSzvBbE3jRqhaF07q+mv9pa8TDqVwg4Ic6OW5dw8UMo+pOcsu26hmhMowUOv95/GACY6zKDGaM3x3SCVavKcSFa8bzCTlBIS0O/JMWaDZHumrb+Nxne5zWlpEKgEEXvXq6jV2gSF2pQmnxThMPWJCTLMRsWuUvyOTaztF/y4Dx92U9BQVWpvXg0gWBj6eVWeDHjRINYQzlVFrReF71MREjBs0Do9ijFCEjbqwsHmD5NUnbz1yX+bTttNuVGG3Kdl3Nea+11/FbBYa1JS7tIt8naCMZ29MO9wlW2vu0vE29bEI0ESgiO9RR/XBhJy1U783CA9oNVExIeQ6l3l9wFrLBLkQISp8WpXd1a0YEWA4FnCTP++Ox5ogHF1RVFHx1VohE/VrGHWJamudgs2lmV453Yg2cAWzQ+XxDk838zIDIgYhPc6QWlVqDsLAU04r7FSYIla2JmNVMLNQM+pIpo4ROGxF4B8/lMSqP6b8Vcd+xh428eGVoOf0K8ZwtQ/aTeLoEOUvJuA9ztCqjPhu8/QLqEXI3pS9UCeJ17mUJpeju22du/v/IFeExQTSopER/FPV5VbvAHiS+sur35d34wtcibKSS1d1HIz0i8Dttgk7K+WStkeyVLBaqbsvo6xAGAkx8rLk2fCMmthPyYvI18U1UV/fuUo5WyXXdm79uJ1ZuubzB1u1RX0sa72YFVFgBKklyQuBukVeGHETHh7no5ghnXWQhjymud4tGxVuCzVEceZKSXhO63qe13uGwDMQ9BMVV5YDfNblHzqFimQzoJE/okCVS5gATf3ny6PS/pK40N9HP0hXTu6F6+QqS9Gc4MnkNOFLyghv+oMQ1Mh2EMglzBYdNdM8RWDfGv/xUIYyRodLvZNJlQ7edb5JMeEHe8CuD+2SovMkKbohUbKhyQkZRxAa3bilk3MU25RJVV70H+L9haxR5v1dsaHbHY&X-Amz-Signature=qQ8hqnAbW6TyOimaVOT0FJYqGQ2LO8iCaxT/UFcFHMpi/9XA7kAXcL0aPwpImubN", //nolint:lll
+				Host:     "rdspostgres.123456789012.us-west-2.rds.amazonaws.com",
+			},
+			expected: expectedConnConfig{
+				User:     "user",
+				Password: "rdspostgres.123456789012.us-west-2.rds.amazonaws.com:5432/?Action=connect&DBUser=user&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAXXXXXXXXXXXXXXXX%2F20230330%2Fus-west-2%2Frds-db%2Faws4_request&X-Amz-Date=20230330T154114Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Security-Token=8QvrlkjXuPwM2Dif69QtSqtMftfDUfxSZ60OADWHKmjF3Nmu9Y0LSzvBbE3jRqhaF07q+mv9pa8TDqVwg4Ic6OW5dw8UMo+pOcsu26hmhMowUOv95/GACY6zKDGaM3x3SCVavKcSFa8bzCTlBIS0O/JMWaDZHumrb+Nxne5zWlpEKgEEXvXq6jV2gSF2pQmnxThMPWJCTLMRsWuUvyOTaztF/y4Dx92U9BQVWpvXg0gWBj6eVWeDHjRINYQzlVFrReF71MREjBs0Do9ijFCEjbqwsHmD5NUnbz1yX+bTttNuVGG3Kdl3Nea+11/FbBYa1JS7tIt8naCMZ29MO9wlW2vu0vE29bEI0ESgiO9RR/XBhJy1U783CA9oNVExIeQ6l3l9wFrLBLkQISp8WpXd1a0YEWA4FnCTP++Ox5ogHF1RVFHx1VohE/VrGHWJamudgs2lmV453Yg2cAWzQ+XxDk838zIDIgYhPc6QWlVqDsLAU04r7FSYIla2JmNVMLNQM+pIpo4ROGxF4B8/lMSqP6b8Vcd+xh428eGVoOf0K8ZwtQ/aTeLoEOUvJuA9ztCqjPhu8/QLqEXI3pS9UCeJ17mUJpeju22du/v/IFeExQTSopER/FPV5VbvAHiS+sur35d34wtcibKSS1d1HIz0i8Dttgk7K+WStkeyVLBaqbsvo6xAGAkx8rLk2fCMmthPyYvI18U1UV/fuUo5WyXXdm79uJ1ZuubzB1u1RX0sa72YFVFgBKklyQuBukVeGHETHh7no5ghnXWQhjymud4tGxVuCzVEceZKSXhO63qe13uGwDMQ9BMVV5YDfNblHzqFimQzoJE/okCVS5gATf3ny6PS/pK40N9HP0hXTu6F6+QqS9Gc4MnkNOFLyghv+oMQ1Mh2EMglzBYdNdM8RWDfGv/xUIYyRodLvZNJlQ7edb5JMeEHe8CuD+2SovMkKbohUbKhyQkZRxAa3bilk3MU25RJVV70H+L9haxR5v1dsaHbHY&X-Amz-Signature=qQ8hqnAbW6TyOimaVOT0FJYqGQ2LO8iCaxT/UFcFHMpi/9XA7kAXcL0aPwpImubN", //nolint:lll
+				Host:     "rdspostgres.123456789012.us-west-2.rds.amazonaws.com",
+			},
+		},
 	}
 	for desc, tc := range tests {
 		tc := tc
