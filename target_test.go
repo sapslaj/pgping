@@ -225,7 +225,10 @@ func TestTargetFromNetrc(t *testing.T) {
 			t.Fatalf("%s: error creating temp file %v", desc, err)
 		}
 		defer os.Remove(file.Name())
-		file.Write([]byte(tc.netrc))
+		_, err = file.Write([]byte(tc.netrc))
+		if err != nil {
+			t.Fatalf("%s: error writing temp file %v", desc, err)
+		}
 		err = file.Close()
 		if err != nil {
 			t.Fatalf("%s: error closing temp file %v", desc, err)
@@ -336,6 +339,7 @@ type expectedConnConfig struct {
 }
 
 func (ecc *expectedConnConfig) GetHost(t *testing.T) string {
+	t.Helper()
 	if ecc.Host != "" {
 		return ecc.Host
 	}
@@ -370,6 +374,7 @@ func (ecc *expectedConnConfig) GetAppName(t *testing.T) string {
 }
 
 func TestTargetToConnConfig(t *testing.T) {
+	t.Parallel()
 
 	tests := map[string]struct {
 		input    Target
@@ -459,9 +464,10 @@ func TestTargetToConnConfig(t *testing.T) {
 	for desc, tc := range tests {
 		tc := tc
 		t.Run(desc, func(t *testing.T) {
+			t.Parallel()
 			connConfig, err := tc.input.ToConnConfig()
 			if err != nil {
-				t.Fatalf("%s: error %v", desc, err)
+				t.Fatalf("error %v", err)
 			}
 			assert.Equal(t, tc.expected.GetAppName(t), connConfig.RuntimeParams["application_name"])
 			assert.Equal(t, tc.expected.Database, connConfig.Database)

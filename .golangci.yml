@@ -14,27 +14,56 @@ linters:
     - test
     - unused
   disable:
-    - exhaustruct # TODO
-    - nlreturn # TODO
-    - paralleltest # TODO
-    - rowserrcheck # disabled because of generics. https://github.com/golangci/golangci-lint/issues/2649
-    - varnamelen # TODO
-    - wastedassign # disabled because of generics. https://github.com/golangci/golangci-lint/issues/2649
-    - wrapcheck # TODO
-    - wsl # TODO
+    # deprecated linters
+    - deadcode
+    - exhaustivestruct
+    - golint
+    - ifshort
+    - interfacer
+    - maligned
+    - nosnakecase
+    - scopelint
+    - structcheck
+    - varcheck
+    # disabled due to personal preference
+    - exhaustruct
+    - gomnd
+    - nlreturn
+    - tagliatelle
+    - unparam
+    - wrapcheck
+    - wsl
+    # disabled because of generics. https://github.com/golangci/golangci-lint/issues/2649
+    - rowserrcheck
+    - sqlclosecheck
+    - wastedassign
+    # TODO
+    - paralleltest
+    - varnamelen
 
 linters-settings:
   cyclop:
     max-complexity: 15
   funlen:
     lines: 100
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/sapslaj/pgping)
+      - blank
+      - dot
+    custom-order: true
 
 issues:
+  exclude:
+    - Line contains TODO/BUG/FIXME # godox
   exclude-rules:
     - path: _test\.go
       linters:
         - dupl
-        - errcheck
+        - exhaustive
+        - forcetypeassert
         - funlen
     - path: main\.go
       linters:
