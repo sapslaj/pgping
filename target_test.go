@@ -1,14 +1,24 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/jackc/pgx/v5"
+	"github.com/stretchr/testify/assert"
 )
+
+func ReferenceConnConfig(t *testing.T) *pgx.ConnConfig {
+	t.Helper()
+	// reference empty config from pgx
+	ref, err := pgx.ParseConfig("postgres://")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return ref
+}
 
 func TestTargetFromEnv(t *testing.T) {
 	tests := map[string]struct {
@@ -95,11 +105,7 @@ func TestTargetFromEnv(t *testing.T) {
 }
 
 func TestTargetFromConnString(t *testing.T) {
-	// reference empty config from pgx
-	ref, err := pgx.ParseConfig("postgres://")
-	if err != nil {
-		panic(err)
-	}
+	ref := ReferenceConnConfig(t)
 	tests := map[string]struct {
 		input    string
 		initial  Target
@@ -320,35 +326,86 @@ func TestTargetFromFlags(t *testing.T) {
 	}
 }
 
-func TestTargetToConnConfig(t *testing.T) {
+type expectedConnConfig struct {
+	Host     string
+	Port     int
+	Database string
+	User     string
+	Password string
+	AppName  string
+}
+
+func (ecc *expectedConnConfig) GetHost(t *testing.T) string {
+	if ecc.Host != "" {
+		return ecc.Host
+	}
+	return ReferenceConnConfig(t).Host
+}
+
+func (ecc *expectedConnConfig) GetPort(t *testing.T) int {
+	t.Helper()
+	if ecc.Port != 0 {
+		return ecc.Port
+	}
+
+	return int(ReferenceConnConfig(t).Port)
+}
+
+func (ecc *expectedConnConfig) GetUser(t *testing.T) string {
+	t.Helper()
+	if ecc.User != "" {
+		return ecc.User
+	}
+
+	return ReferenceConnConfig(t).User
+}
+
+func (ecc *expectedConnConfig) GetAppName(t *testing.T) string {
+	t.Helper()
 	defaultAppName := "pgping/" + VERSION
+	if ecc.AppName == "" {
+		return defaultAppName
+	}
+	return ecc.AppName
+}
+
+func TestTargetToConnConfig(t *testing.T) {
+
 	tests := map[string]struct {
 		input    Target
-		expected string
+		expected expectedConnConfig
 	}{
 		"empty": {
 			input:    Target{},
-			expected: fmt.Sprintf("postgres://?application_name=%s", defaultAppName),
+			expected: expectedConnConfig{},
 		},
 		"host": {
 			input: Target{
 				Host: "db.example.com",
 			},
-			expected: fmt.Sprintf("postgres://db.example.com?application_name=%s", defaultAppName),
+			expected: expectedConnConfig{
+				Host: "db.example.com",
+			},
 		},
 		"host and port": {
 			input: Target{
 				Host: "db.example.com",
 				Port: 4567,
 			},
-			expected: fmt.Sprintf("postgres://db.example.com:4567?application_name=%s", defaultAppName),
+			expected: expectedConnConfig{
+				Host: "db.example.com",
+				Port: 4567,
+			},
 		},
 		"username and host": {
 			input: Target{
 				User: "user",
 				Host: "db.example.com",
 			},
-			expected: fmt.Sprintf("postgres://user@db.example.com?application_name=%s", defaultAppName),
+			expected: expectedConnConfig{
+				User: "user",
+				Host: "db.example.com",
+			},
 		},
 		"username and password and host": {
 			input: Target{
@@ -356,43 +413,62 @@ func TestTargetToConnConfig(t *testing.T) {
 				Password: "hunter2",
 				Host:     "db.example.com",
 			},
-			expected: fmt.Sprintf("postgres://user:hunter2@db.example.com?application_name=%s", defaultAppName),
+			expected: expectedConnConfig{
+				User:     "user",
+				Password: "hunter2",
+				Host:     "db.example.com",
+			},
 		},
 		"username and password": {
 			input: Target{
 				User:     "user",
 				Password: "hunter2",
 			},
-			expected: fmt.Sprintf("postgres://user:hunter2@?application_name=%s", defaultAppName),
+			expected: expectedConnConfig{
+				User:     "user",
+				Password: "hunter2",
+			},
 		},
 		"database": {
 			input: Target{
 				Database: "test",
 			},
-			expected: fmt.Sprintf("postgres:///test?application_name=%s", defaultAppName),
+			expected: expectedConnConfig{
+				Database: "test",
+			},
 		},
 		"database and host": {
 			input: Target{
 				Host:     "db.example.com",
 				Database: "test",
 			},
-			expected: fmt.Sprintf("postgres://db.example.com/test?application_name=%s", defaultAppName),
+			expected: expectedConnConfig{
+				Host:     "db.example.com",
+				Database: "test",
+			},
 		},
 		"app name": {
 			input: Target{
 				AppName: "CustomApp",
 			},
-			expected: "postgres://?application_name=CustomApp",
+			expected: expectedConnConfig{
+				AppName: "CustomApp",
+			},
 		},
 	}
 	for desc, tc := range tests {
-		connConfig, err := tc.input.ToConnConfig()
-		if err != nil {
-			t.Fatalf("%s: error %v", desc, err)
-		}
-		diff := cmp.Diff(tc.expected, connConfig.ConnString())
-		if diff != "" {
-			t.Errorf("%s: mismatch:\n%s", desc, diff)
-		}
+		tc := tc
+		t.Run(desc, func(t *testing.T) {
+			connConfig, err := tc.input.ToConnConfig()
+			if err != nil {
+				t.Fatalf("%s: error %v", desc, err)
+			}
+			assert.Equal(t, tc.expected.GetAppName(t), connConfig.RuntimeParams["application_name"])
+			assert.Equal(t, tc.expected.Database, connConfig.Database)
+			assert.Equal(t, tc.expected.GetHost(t), connConfig.Host)
+			assert.Equal(t, tc.expected.Password, connConfig.Password)
+			assert.EqualValues(t, tc.expected.GetPort(t), connConfig.Port)
+			assert.Equal(t, tc.expected.GetUser(t), connConfig.User)
+		})
 	}
 }
