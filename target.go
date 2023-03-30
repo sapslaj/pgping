@@ -149,10 +149,6 @@ func (t *Target) ToConnConfig() (*pgx.ConnConfig, error) {
 	connString.WriteString("postgres://")
 	if t.User != "" {
 		connString.WriteString(t.User)
-		if t.Password != "" {
-			connString.WriteString(":")
-			connString.WriteString(t.Password)
-		}
 		connString.WriteString("@")
 	}
 	if t.Host != "" {
@@ -172,5 +168,12 @@ func (t *Target) ToConnConfig() (*pgx.ConnConfig, error) {
 	} else {
 		connString.WriteString(t.AppName)
 	}
-	return pgx.ParseConfig(connString.String())
+	connConfig, err := pgx.ParseConfig(connString.String())
+	if err != nil {
+		return connConfig, err
+	}
+	if t.Password != "" {
+		connConfig.Password = t.Password
+	}
+	return connConfig, nil
 }
