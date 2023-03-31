@@ -159,6 +159,33 @@ func TestTargetFromConnString(t *testing.T) {
 				User: ref.User,
 			},
 		},
+		"don't overwrite set values from empty connstring": {
+			input: "",
+			initial: Target{
+				Host: "db.example.com",
+				Port: 4567,
+				User: "user",
+			},
+			expected: Target{
+				Host: "db.example.com",
+				Port: 4567,
+				User: "user",
+			},
+		},
+		"don't overwrite set value from connstring that doesn't set them": {
+			input: "user2:hunter2@db2.example.com",
+			initial: Target{
+				Host: "db.example.com",
+				Port: 4567,
+				User: "user",
+			},
+			expected: Target{
+				Host:     "db2.example.com",
+				Port:     4567,
+				User:     "user2",
+				Password: "hunter2",
+			},
+		},
 	}
 	for desc, tc := range tests {
 		tg := tc.initial

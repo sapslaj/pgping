@@ -26,23 +26,27 @@ func (t *Target) FromConnString(s string) error {
 	if !strings.Contains(s, "postgres://") {
 		s = "postgres://" + s
 	}
+	empty, err := pgx.ParseConfig("postgres://")
+	if err != nil {
+		return err
+	}
 	parsed, err := pgx.ParseConfig(s)
 	if err != nil {
 		return err
 	}
-	if t.Host == "" {
+	if parsed.Host != empty.Host || t.Host == "" {
 		t.Host = parsed.Host
 	}
-	if t.Port == 0 {
+	if parsed.Port != empty.Port || t.Port == 0 {
 		t.Port = int(parsed.Port)
 	}
-	if t.Database == "" {
+	if parsed.Database != empty.Database || t.Database == "" {
 		t.Database = parsed.Database
 	}
-	if t.User == "" {
+	if parsed.User != empty.User || t.User == "" {
 		t.User = parsed.User
 	}
-	if t.Password == "" {
+	if parsed.Password != empty.Password || t.Password == "" {
 		t.Password = parsed.Password
 	}
 	return nil
