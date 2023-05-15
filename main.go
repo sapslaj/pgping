@@ -27,6 +27,7 @@ var (
 	pgAppName  = kingpin.Flag("pg-app-name", "").Default("pgping/" + VERSION).String()
 
 	promptPassword = kingpin.Flag("prompt-password", "prompt for password").Short('p').Bool()
+	logLevel       = kingpin.Flag("log-level", "log level (default, debug)").Default("default").String()
 
 	target = kingpin.Arg("target", "").String()
 )
@@ -54,7 +55,7 @@ func result(i int, start time.Time, kvs ...string) time.Duration {
 		}
 		format.WriteString(label)
 	}
-	fmt.Println(format.String())
+	logln(format.String())
 	return duration
 }
 
@@ -92,10 +93,7 @@ func readPassword(prompt string) (string, error) {
 
 func buildTarget() *Target {
 	t := &Target{}
-	err := t.FromNetrc("")
-	if err != nil {
-		panic(err)
-	}
+	var err error
 	err = t.FromEnv(os.Getenv)
 	if err != nil {
 		panic(err)
@@ -110,6 +108,10 @@ func buildTarget() *Target {
 			panic(err)
 		}
 	}
+	err = t.FromNetrc("")
+	if err != nil {
+		panic(err)
+	}
 	if promptPassword != nil && *promptPassword {
 		password, err := readPassword("Password: ")
 		if err != nil {
@@ -122,10 +124,13 @@ func buildTarget() *Target {
 
 func main() {
 	kingpin.CommandLine.HelpFlag.Short('h')
+	debugln("Parsing command-line flags")
 	kingpin.Parse()
 	ctx := context.Background()
+	debugln("Building target")
 	t := buildTarget()
 
+	debugln("Converting target to conn config")
 	connConfig, err := t.ToConnConfig()
 	if err != nil {
 		panic(err)
