@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/alecthomas/kingpin"
 	"github.com/jackc/pgx/v5"
+	"golang.org/x/term"
 )
 
 var (
@@ -23,6 +25,8 @@ var (
 	pgUser     = kingpin.Flag("pg-user", "").String()
 	pgPassword = kingpin.Flag("pg-password", "").String()
 	pgAppName  = kingpin.Flag("pg-app-name", "").Default("pgping/" + VERSION).String()
+
+	promptPassword = kingpin.Flag("prompt-password", "prompt for password").Short('p').Bool()
 
 	target = kingpin.Arg("target", "").String()
 )
@@ -76,11 +80,17 @@ func ping(parent context.Context, connConfig *pgx.ConnConfig, i int) (bool, time
 	return false, result(i, start, kv("status", "FAIL"), kv("host", connConfig.Host), kv("msg", "0 rows returned"))
 }
 
-func main() {
-	kingpin.CommandLine.HelpFlag.Short('h')
-	kingpin.Parse()
-	ctx := context.Background()
+func readPassword(prompt string) (string, error) {
+	fmt.Print(prompt)
+	bytepw, err := term.ReadPassword(syscall.Stdin)
+	fmt.Println()
+	if err != nil {
+		return "", err
+	}
+	return string(bytepw), nil
+}
 
+func buildTarget() *Target {
 	t := &Target{}
 	err := t.FromNetrc("")
 	if err != nil {
@@ -100,6 +110,21 @@ func main() {
 			panic(err)
 		}
 	}
+	if promptPassword != nil && *promptPassword {
+		password, err := readPassword("Password: ")
+		if err != nil {
+			panic(err)
+		}
+		t.Password = password
+	}
+	return t
+}
+
+func main() {
+	kingpin.CommandLine.HelpFlag.Short('h')
+	kingpin.Parse()
+	ctx := context.Background()
+	t := buildTarget()
 
 	connConfig, err := t.ToConnConfig()
 	if err != nil {
