@@ -6,9 +6,9 @@ require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/aws/smithy-go v1.13.5
 	github.com/google/go-cmp v0.5.9
-	github.com/jackc/pgx/v5 v5.2.0
+	github.com/jackc/pgx/v5 v5.5.4
 	github.com/jdxcode/netrc v0.0.0-20221124155335-4616370d1a84
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	golang.org/x/term v0.15.0
 )
 
@@ -17,7 +17,7 @@ require (
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
