@@ -26,6 +26,7 @@ linters:
     - structcheck
     - varcheck
     # disabled due to personal preference
+    - depguard
     - exhaustruct
     - gomnd
     - nlreturn
@@ -65,12 +66,20 @@ issues:
         - exhaustive
         - forcetypeassert
         - funlen
+    - path: log\.go
+      linters:
+        # fmt.Print is expected behavior
+        - forbidigo
+        # functions defined useful in the future, even if unused
+        - unused
     - path: main\.go
       linters:
         # fmt.Print is expected behavior
         - forbidigo
         # flags are known globals
         - gochecknoglobals
+        # recommendation reduces clarity
+        - goconst
     - path: target\.go
       linters:
         - nestif # TODO
