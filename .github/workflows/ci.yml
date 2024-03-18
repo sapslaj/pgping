@@ -56,6 +56,6 @@ jobs:
           cache: true
       - run: go mod download
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v4
         with:
-          version: v1.51.2
+          version: v1.56.2
