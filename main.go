@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/alecthomas/kingpin"
@@ -83,7 +82,7 @@ func ping(parent context.Context, connConfig *pgx.ConnConfig, i int) (bool, time
 
 func readPassword(prompt string) (string, error) {
 	fmt.Print(prompt)
-	bytepw, err := term.ReadPassword(syscall.Stdin)
+	bytepw, err := term.ReadPassword(int(os.Stderr.Fd()))
 	fmt.Println()
 	if err != nil {
 		return "", err
