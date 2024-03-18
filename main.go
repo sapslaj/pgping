@@ -139,11 +139,10 @@ func main() {
 	for i := 1; *count == -1 || i <= *count; i++ {
 		pass, duration := ping(ctx, connConfig, i)
 		if i == *count {
-			if pass {
-				os.Exit(0)
-			} else {
+			if !pass {
 				os.Exit(1)
 			}
+			os.Exit(0)
 		}
 		timeUntilNext := *wait - duration
 		if timeUntilNext > 0 {

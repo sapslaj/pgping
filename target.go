@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -191,7 +190,7 @@ func (t *Target) ToConnConfig() (*pgx.ConnConfig, error) {
 	}
 	if t.Port != 0 {
 		connString.WriteString(":")
-		connString.WriteString(fmt.Sprint(t.Port))
+		connString.WriteString(strconv.Itoa(t.Port))
 	}
 	if t.Database != "" {
 		connString.WriteString("/")

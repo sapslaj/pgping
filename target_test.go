@@ -252,7 +252,7 @@ func TestTargetFromNetrc(t *testing.T) {
 			t.Fatalf("%s: error creating temp file %v", desc, err)
 		}
 		defer os.Remove(file.Name())
-		_, err = file.Write([]byte(tc.netrc))
+		_, err = file.WriteString(tc.netrc)
 		if err != nil {
 			t.Fatalf("%s: error writing temp file %v", desc, err)
 		}
