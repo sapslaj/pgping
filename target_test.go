@@ -84,6 +84,14 @@ func TestTargetFromEnv(t *testing.T) {
 				AppName: "myapp",
 			},
 		},
+		"sslmode": {
+			env: map[string]string{
+				"PGSSLMODE": "required",
+			},
+			expected: Target{
+				AppName: "required",
+			},
+		},
 	}
 	for desc, tc := range tests {
 		tg := tc.initial
@@ -335,6 +343,14 @@ func TestTargetFromFlags(t *testing.T) {
 				AppName: "myapp",
 			},
 		},
+		"sslmode": {
+			set: func() {
+				pgSSLMode = ptr.String("required")
+			},
+			expected: Target{
+				SSLMode: "required",
+			},
+		},
 	}
 	for desc, tc := range tests {
 		pgHost = nil
@@ -343,6 +359,7 @@ func TestTargetFromFlags(t *testing.T) {
 		pgUser = nil
 		pgPassword = nil
 		pgAppName = nil
+		pgSSLMode = nil
 		tg := tc.initial
 		tc.set()
 		err := tg.FromFlags()
@@ -363,6 +380,7 @@ type expectedConnConfig struct {
 	User     string
 	Password string
 	AppName  string
+	SSLMode  string
 }
 
 func (ecc *expectedConnConfig) GetHost(t *testing.T) string {
@@ -487,6 +505,14 @@ func TestTargetToConnConfig(t *testing.T) {
 				AppName: "CustomApp",
 			},
 		},
+		"sslmode": {
+			input: Target{
+				SSLMode: "required",
+			},
+			expected: expectedConnConfig{
+				SSLMode: "required",
+			},
+		},
 		"unparsable password": {
 			input: Target{
 				User:     "user",
@@ -514,6 +540,7 @@ func TestTargetToConnConfig(t *testing.T) {
 			assert.Equal(t, tc.expected.Password, connConfig.Password)
 			assert.EqualValues(t, tc.expected.GetPort(t), connConfig.Port)
 			assert.Equal(t, tc.expected.GetUser(t), connConfig.User)
+			assert.Contains(t, connConfig.ConnString(), tc.expected.SSLMode)
 		})
 	}
 }

@@ -23,6 +23,7 @@ var (
 	pgDatabase = kingpin.Flag("pg-database", "").String()
 	pgUser     = kingpin.Flag("pg-user", "").String()
 	pgPassword = kingpin.Flag("pg-password", "").String()
+	pgSSLMode  = kingpin.Flag("pg-sslmode", "").String()
 	pgAppName  = kingpin.Flag("pg-app-name", "").Default("pgping/" + VERSION).String()
 
 	promptPassword = kingpin.Flag("prompt-password", "prompt for password").Short('p').Bool()

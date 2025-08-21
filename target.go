@@ -19,6 +19,7 @@ type Target struct {
 	User     string
 	Password string
 	AppName  string
+	SSLMode  string
 }
 
 func (t *Target) FromConnString(s string) error {
@@ -85,6 +86,10 @@ func (t *Target) FromEnv(getenv func(string) string) error {
 	if appName := getenv("PGAPPNAME"); appName != "" {
 		debugf("Target.FromEnv: setting appname to `%s`", appName)
 		t.AppName = appName
+	}
+	if sslMode := getenv("PGSSLMODE"); sslMode != "" {
+		debugf("Target.FromEnv: setting sslmode to `%s`", sslMode)
+		t.AppName = sslMode
 	}
 	return nil
 }
@@ -175,6 +180,10 @@ func (t *Target) FromFlags() error {
 		debugf("Target.FromFlags: setting appname to `%s`", *pgAppName)
 		t.AppName = *pgAppName
 	}
+	if pgSSLMode != nil && *pgSSLMode != "" {
+		debugf("Target.FromFlags: setting sslmode to `%s`", *pgSSLMode)
+		t.SSLMode = *pgSSLMode
+	}
 	return nil
 }
 
@@ -201,6 +210,10 @@ func (t *Target) ToConnConfig() (*pgx.ConnConfig, error) {
 		connString.WriteString("pgping/" + VERSION)
 	} else {
 		connString.WriteString(t.AppName)
+	}
+	if t.SSLMode != "" {
+		connString.WriteString("&sslmode=")
+		connString.WriteString(t.SSLMode)
 	}
 	connConfig, err := pgx.ParseConfig(connString.String())
 	if err != nil {
