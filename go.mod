@@ -1,6 +1,8 @@
 module github.com/sapslaj/pgping
 
-go 1.19
+go 1.23.0
+
+toolchain go1.24.5
 
 require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
