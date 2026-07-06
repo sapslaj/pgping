@@ -1,4 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+#
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["semver==2.13.0"]
+# ///
+
 import argparse
 import semver
 import subprocess
